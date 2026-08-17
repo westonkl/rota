@@ -1,6 +1,8 @@
 package tui
 
 import (
+	"fmt"
+	"os"
 	"strings"
 	"sync"
 
@@ -9,12 +11,43 @@ import (
 )
 
 var (
-	rendererMap = make(map[int]*glamour.TermRenderer)
-	rendererMu  sync.Mutex
+	rendererMap  = make(map[string]*glamour.TermRenderer)
+	rendererMu   sync.Mutex
+	currentTheme = "auto"
 )
 
-// RenderMarkdown renders markdown text using Glamour with fixed standard style.
-// Standard style avoids querying stdin/OSC escape sequences which can deadlock Bubble Tea.
+// SetTheme sets the active TUI theme ("auto", "light", "dark").
+func SetTheme(theme string) {
+	rendererMu.Lock()
+	defer rendererMu.Unlock()
+	currentTheme = strings.ToLower(strings.TrimSpace(theme))
+}
+
+// IsLightMode determines whether light mode styling should be used.
+func IsLightMode() bool {
+	if currentTheme == "light" {
+		return true
+	}
+	if currentTheme == "dark" {
+		return false
+	}
+	if env := os.Getenv("ROTA_THEME"); env != "" {
+		return strings.ToLower(env) == "light"
+	}
+	if colorFGBG := os.Getenv("COLORFGBG"); colorFGBG != "" {
+		parts := strings.Split(colorFGBG, ";")
+		if len(parts) >= 2 {
+			bg := parts[len(parts)-1]
+			// In COLORFGBG, bg numbers 7, 15, or high values indicate light background
+			if bg == "15" || bg == "7" || bg == "11" || bg == "14" {
+				return true
+			}
+		}
+	}
+	return !lipgloss.HasDarkBackground()
+}
+
+// RenderMarkdown renders markdown text using Glamour with the active theme style.
 func RenderMarkdown(in string, width int) string {
 	in = strings.TrimSpace(in)
 	if in == "" {
@@ -26,17 +59,24 @@ func RenderMarkdown(in string, width int) string {
 		wrapWidth = 20
 	}
 
+	styleName := "dark"
+	if IsLightMode() {
+		styleName = "light"
+	}
+
+	cacheKey := fmt.Sprintf("%s:%d", styleName, wrapWidth)
+
 	rendererMu.Lock()
-	r, found := rendererMap[wrapWidth]
+	r, found := rendererMap[cacheKey]
 	if !found {
 		var err error
 		r, err = glamour.NewTermRenderer(
-			glamour.WithStandardStyle("dark"),
+			glamour.WithStandardStyle(styleName),
 			glamour.WithWordWrap(wrapWidth),
 			glamour.WithPreservedNewLines(),
 		)
 		if err == nil {
-			rendererMap[wrapWidth] = r
+			rendererMap[cacheKey] = r
 		}
 	}
 	rendererMu.Unlock()

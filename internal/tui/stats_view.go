@@ -131,7 +131,7 @@ func RenderStatsView(stats *db.StatsSummary) string {
 	return b.String()
 }
 
-func renderBar(percent float64, color lipgloss.Color) string {
+func renderBar(percent float64, color lipgloss.TerminalColor) string {
 	width := 20
 	filled := int((percent / 100.0) * float64(width))
 	if filled > width {

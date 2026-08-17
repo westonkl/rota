@@ -9,12 +9,14 @@ import (
 	"rota/internal/config"
 	"rota/internal/db"
 	"rota/internal/fsrs"
+	"rota/internal/tui"
 )
 
 var (
 	flagDBPath    string
 	flagVaultPath string
 	flagRetention float64
+	flagTheme     string
 
 	store     *db.Store
 	scheduler *fsrs.Scheduler
@@ -36,6 +38,9 @@ Usage:
   rota reset             Reset learning progress
 `,
 	PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
+		// Set TUI theme
+		tui.SetTheme(flagTheme)
+
 		// Don't initialize DB for help or version commands
 		if cmd.Name() == "help" || cmd.Name() == "version" {
 			return nil
@@ -78,4 +83,5 @@ func init() {
 	rootCmd.PersistentFlags().StringVarP(&flagDBPath, "db", "d", "", "Path to SQLite database file (default ~/.local/share/rota/rota.db)")
 	rootCmd.PersistentFlags().StringVarP(&flagVaultPath, "path", "p", ".", "Path to directory containing markdown notes")
 	rootCmd.PersistentFlags().Float64VarP(&flagRetention, "retention", "r", 0.9, "Target retention rate for FSRS (default 0.9 or 90%)")
+	rootCmd.PersistentFlags().StringVar(&flagTheme, "theme", "auto", "TUI theme: auto, light, or dark (or set ROTA_THEME)")
 }

@@ -5,17 +5,18 @@ import (
 )
 
 var (
-	// Base Colors
-	ColorPrimary   = lipgloss.Color("#7aa2f7") // Soft Cornflower Blue
-	ColorSecondary = lipgloss.Color("#bb9af7") // Soft Violet
-	ColorSuccess   = lipgloss.Color("#9ece6a") // Leaf Green (Good)
-	ColorEasy      = lipgloss.Color("#7dcfff") // Sky Cyan (Easy)
-	ColorWarning   = lipgloss.Color("#e0af68") // Warm Amber (Hard)
-	ColorDanger    = lipgloss.Color("#f7768e") // Coral Red (Again)
-	ColorMuted     = lipgloss.Color("#565f89") // Subdued Grey-Blue
-	ColorSubtle    = lipgloss.Color("#787c99") // Light Slate
-	ColorBorder    = lipgloss.Color("#414868") // Subtle Card Border
-	ColorBgCard    = lipgloss.Color("#1f2335") // Card Surface Background
+	// Base Colors (Adaptive for Light & Dark terminal backgrounds)
+	ColorPrimary   = lipgloss.AdaptiveColor{Light: "#1d4ed8", Dark: "#7aa2f7"} // Blue
+	ColorSecondary = lipgloss.AdaptiveColor{Light: "#6d28d9", Dark: "#bb9af7"} // Violet
+	ColorSuccess   = lipgloss.AdaptiveColor{Light: "#15803d", Dark: "#9ece6a"} // Green (Good)
+	ColorEasy      = lipgloss.AdaptiveColor{Light: "#0369a1", Dark: "#7dcfff"} // Cyan (Easy)
+	ColorWarning   = lipgloss.AdaptiveColor{Light: "#b45309", Dark: "#e0af68"} // Amber (Hard)
+	ColorDanger    = lipgloss.AdaptiveColor{Light: "#b91c1c", Dark: "#f7768e"} // Red (Again)
+	ColorMuted     = lipgloss.AdaptiveColor{Light: "#6b7280", Dark: "#565f89"} // Grey
+	ColorSubtle    = lipgloss.AdaptiveColor{Light: "#374151", Dark: "#787c99"} // Slate
+	ColorBorder    = lipgloss.AdaptiveColor{Light: "#9ca3af", Dark: "#414868"} // Border
+	ColorBgCard    = lipgloss.AdaptiveColor{Light: "#f3f4f6", Dark: "#1f2335"} // Surface
+	ColorText      = lipgloss.AdaptiveColor{Light: "#111827", Dark: "#f3f4f6"} // Foreground
 
 	// Styles
 	StyleTitle = lipgloss.NewStyle().
@@ -25,7 +26,7 @@ var (
 	StyleDeckBadge = lipgloss.NewStyle().
 			Bold(true).
 			Foreground(lipgloss.Color("#ffffff")).
-			Background(lipgloss.Color("#3d59a1")).
+			Background(lipgloss.AdaptiveColor{Light: "#1e40af", Dark: "#3d59a1"}).
 			Padding(0, 1)
 
 	StyleProgress = lipgloss.NewStyle().
@@ -78,8 +79,7 @@ var (
 			Padding(0, 1)
 
 	StyleInterval = lipgloss.NewStyle().
-			Foreground(ColorSubtle).
-			Faint(true)
+			Foreground(ColorSubtle)
 
 	StyleHelp = lipgloss.NewStyle().
 			Foreground(ColorMuted)
