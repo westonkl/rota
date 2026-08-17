@@ -249,7 +249,7 @@ func (m *AppModel) handleUndo() (tea.Model, tea.Cmd) {
 	m.currIndex--
 	m.cards[m.currIndex].FSRS = &last.PrevFSRS
 	m.revealed = true
-	m.statusMessage = fmt.Sprintf("Undid rating for card")
+	m.statusMessage = "Undid rating for card"
 
 	return m, nil
 }

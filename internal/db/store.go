@@ -93,6 +93,9 @@ func (s *Store) SyncFileCards(filePath string, parsed []*card.Card) (*SyncResult
 		existingByID[c.ID] = &c
 		existingByHash[c.Hash] = &c
 	}
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("error reading cards: %w", err)
+	}
 	rows.Close()
 
 	seenIDs := make(map[string]bool)
@@ -433,6 +436,9 @@ func (s *Store) GetDeckSummaries(now time.Time) ([]DeckSummary, error) {
 		}
 		summaries = append(summaries, sum)
 	}
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("error reading deck summaries: %w", err)
+	}
 
 	return summaries, nil
 }
@@ -487,6 +493,9 @@ func (s *Store) GetStatsSummary(now time.Time) (*StatsSummary, error) {
 			successfulReviews += count
 		}
 	}
+	if err := reviewRows.Err(); err != nil {
+		return nil, fmt.Errorf("error reading review counts: %w", err)
+	}
 	reviewRows.Close()
 
 	if stats.TotalReviews > 0 {
@@ -516,6 +525,9 @@ func (s *Store) GetStatsSummary(now time.Time) (*StatsSummary, error) {
 			stats.ReviewsByDay[day.String] = count
 		}
 	}
+	if err := dayRows.Err(); err != nil {
+		return nil, fmt.Errorf("error reading daily reviews: %w", err)
+	}
 	dayRows.Close()
 
 	// 4. Calculate current daily streak
@@ -538,6 +550,9 @@ func (s *Store) GetStatsSummary(now time.Time) (*StatsSummary, error) {
 		if d.Valid && d.String != "" {
 			days = append(days, d.String)
 		}
+	}
+	if err := streakRows.Err(); err != nil {
+		return nil, fmt.Errorf("error reading review streak: %w", err)
 	}
 	streakRows.Close()
 
@@ -673,6 +688,9 @@ func scanCards(rows *sql.Rows) ([]*card.Card, error) {
 		}
 
 		cards = append(cards, &c)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("error reading card rows: %w", err)
 	}
 
 	return cards, nil
