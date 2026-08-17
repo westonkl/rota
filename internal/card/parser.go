@@ -58,8 +58,10 @@ func ParseContent(content []byte, filePath, defaultDeck string) ([]*Card, error)
 			// Extract deck or tags from frontmatter
 			for i := 1; i < endIdx; i++ {
 				line := strings.TrimSpace(lines[i])
-				if after, ok := strings.CutPrefix(line, "deck:"); ok {
-					val := strings.TrimSpace(after)
+				lower := strings.ToLower(line)
+				if strings.HasPrefix(lower, "deck:") || strings.HasPrefix(lower, "deck :") {
+					colonIdx := strings.Index(line, ":")
+					val := strings.TrimSpace(line[colonIdx+1:])
 					val = strings.Trim(val, `"'`)
 					if val != "" {
 						currentDeck = val
@@ -97,7 +99,7 @@ func ParseContent(content []byte, filePath, defaultDeck string) ([]*Card, error)
 				tags := extractTags(qRaw + "\n" + aRaw)
 				qClean := stripTags(qRaw)
 				aClean := stripTags(aRaw)
-				hash := ComputeMeaningHash(currentDeck, qClean, aClean)
+				hash := ComputeMeaningHash(qClean, aClean)
 				cardCountForHash[hash]++
 				count := cardCountForHash[hash]
 
@@ -131,7 +133,7 @@ func ParseContent(content []byte, filePath, defaultDeck string) ([]*Card, error)
 				cClean := stripTags(cRaw)
 				clozes := ProcessClozeText(cClean)
 				for idx, cl := range clozes {
-					hash := ComputeMeaningHash(currentDeck, cl.FrontText, cl.BackText)
+					hash := ComputeMeaningHash(cl.FrontText, cl.BackText)
 					cardCountForHash[hash]++
 					count := cardCountForHash[hash]
 

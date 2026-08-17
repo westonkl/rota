@@ -3,6 +3,7 @@ package db
 import (
 	"database/sql"
 	"fmt"
+	"os"
 	"path/filepath"
 	"strings"
 	"time"
@@ -39,6 +40,7 @@ type StatsSummary struct {
 // CardFilter defines query filtering for cards.
 type CardFilter struct {
 	Deck        string
+	FilePath    string
 	DueOnly     bool
 	State       *gofsrs.State
 	SearchQuery string
@@ -61,6 +63,9 @@ func (s *Store) SyncFileCards(filePath string, parsed []*card.Card) (*SyncResult
 	if abs, err := filepath.Abs(filePath); err == nil {
 		filePath = abs
 	}
+	if realPath, err := filepath.EvalSymlinks(filePath); err == nil {
+		filePath = realPath
+	}
 
 	tx, err := s.db.Begin()
 	if err != nil {
@@ -71,9 +76,13 @@ func (s *Store) SyncFileCards(filePath string, parsed []*card.Card) (*SyncResult
 	result := &SyncResult{}
 	now := time.Now().UTC()
 
-	// Get all existing cards for this file path (or basename)
+	// Get all existing cards for this file path (or basename) using case-insensitive path comparison
 	baseName := filepath.Base(filePath)
-	rows, err := tx.Query("SELECT id, hash, deck, line_number, prompt, answer, tags FROM cards WHERE file_path = ? OR file_path LIKE ?", filePath, "%"+baseName)
+	rows, err := tx.Query(`
+		SELECT id, hash, deck, file_path, line_number, prompt, answer, tags 
+		FROM cards 
+		WHERE LOWER(file_path) = LOWER(?) OR LOWER(file_path) LIKE LOWER(?)
+	`, filePath, "%"+baseName)
 	if err != nil {
 		return nil, fmt.Errorf("failed to query existing cards: %w", err)
 	}
@@ -84,7 +93,7 @@ func (s *Store) SyncFileCards(filePath string, parsed []*card.Card) (*SyncResult
 	for rows.Next() {
 		var c card.Card
 		var tagsStr sql.NullString
-		if err := rows.Scan(&c.ID, &c.Hash, &c.Deck, &c.LineNumber, &c.Prompt, &c.Answer, &tagsStr); err != nil {
+		if err := rows.Scan(&c.ID, &c.Hash, &c.Deck, &c.FilePath, &c.LineNumber, &c.Prompt, &c.Answer, &tagsStr); err != nil {
 			return nil, err
 		}
 		if tagsStr.Valid && tagsStr.String != "" {
@@ -101,7 +110,6 @@ func (s *Store) SyncFileCards(filePath string, parsed []*card.Card) (*SyncResult
 	seenIDs := make(map[string]bool)
 
 	for _, c := range parsed {
-		seenIDs[c.ID] = true
 		tagsJoined := strings.Join(c.Tags, ",")
 
 		existing, found := existingByID[c.ID]
@@ -110,8 +118,9 @@ func (s *Store) SyncFileCards(filePath string, parsed []*card.Card) (*SyncResult
 		}
 
 		if found {
+			seenIDs[existing.ID] = true
 			// Card already exists with matching ID or Hash
-			if existing.LineNumber != c.LineNumber || existing.Prompt != c.Prompt || existing.Answer != c.Answer || existing.Deck != c.Deck || strings.Join(existing.Tags, ",") != tagsJoined {
+			if existing.LineNumber != c.LineNumber || existing.Prompt != c.Prompt || existing.Answer != c.Answer || existing.Deck != c.Deck || existing.FilePath != filePath || strings.Join(existing.Tags, ",") != tagsJoined {
 				_, err := tx.Exec(`
 					UPDATE cards 
 					SET deck = ?, file_path = ?, line_number = ?, prompt = ?, answer = ?, extra = ?, tags = ?, updated_at = ?
@@ -127,6 +136,7 @@ func (s *Store) SyncFileCards(filePath string, parsed []*card.Card) (*SyncResult
 			existingByID[existing.ID] = c
 			existingByHash[existing.Hash] = c
 		} else {
+			seenIDs[c.ID] = true
 			// Brand new card (with ON CONFLICT fallback for complete safety)
 			_, err := tx.Exec(`
 				INSERT INTO cards (id, hash, deck, file_path, line_number, card_type, prompt, answer, extra, tags, created_at, updated_at)
@@ -171,7 +181,7 @@ func (s *Store) SyncFileCards(filePath string, parsed []*card.Card) (*SyncResult
 
 	// Remove cards in database that no longer exist in this file
 	for id, existing := range existingByID {
-		if !seenIDs[id] && (existing.FilePath == filePath || strings.HasSuffix(existing.FilePath, baseName)) {
+		if !seenIDs[id] && (strings.EqualFold(existing.FilePath, filePath) || strings.HasSuffix(strings.ToLower(existing.FilePath), strings.ToLower(baseName))) {
 			_, err := tx.Exec("DELETE FROM cards WHERE id = ?", id)
 			if err != nil {
 				return nil, fmt.Errorf("failed to delete removed card: %w", err)
@@ -207,8 +217,8 @@ func (s *Store) GetDueCards(deck string, limit int, now time.Time) ([]*card.Card
 	args := []any{now}
 
 	if deck != "" {
-		query += " AND c.deck = ?"
-		args = append(args, deck)
+		query += " AND (c.deck = ? OR c.deck LIKE ?)"
+		args = append(args, deck, "%"+deck+"%")
 	}
 
 	// Ordering:
@@ -252,8 +262,13 @@ func (s *Store) ListCards(filter CardFilter) ([]*card.Card, error) {
 	var args []any
 
 	if filter.Deck != "" {
-		query += " AND c.deck = ?"
-		args = append(args, filter.Deck)
+		query += " AND (c.deck = ? OR c.deck LIKE ?)"
+		args = append(args, filter.Deck, "%"+filter.Deck+"%")
+	}
+
+	if filter.FilePath != "" {
+		query += " AND (c.file_path = ? OR c.file_path LIKE ?)"
+		args = append(args, filter.FilePath, "%"+filter.FilePath+"%")
 	}
 
 	if filter.State != nil {
@@ -694,4 +709,38 @@ func scanCards(rows *sql.Rows) ([]*card.Card, error) {
 	}
 
 	return cards, nil
+}
+
+// CleanOrphanFiles removes database records for files that no longer exist on disk.
+func (s *Store) CleanOrphanFiles() (int, error) {
+	rows, err := s.db.Query("SELECT DISTINCT file_path FROM cards")
+	if err != nil {
+		return 0, err
+	}
+	defer rows.Close()
+
+	var toDelete []string
+	for rows.Next() {
+		var fp string
+		if err := rows.Scan(&fp); err == nil {
+			if _, err := os.Stat(fp); os.IsNotExist(err) {
+				toDelete = append(toDelete, fp)
+			}
+		}
+	}
+	if err := rows.Err(); err != nil {
+		return 0, err
+	}
+	rows.Close()
+
+	deleted := 0
+	for _, fp := range toDelete {
+		res, err := s.db.Exec("DELETE FROM cards WHERE file_path = ?", fp)
+		if err == nil {
+			if n, _ := res.RowsAffected(); n > 0 {
+				deleted += int(n)
+			}
+		}
+	}
+	return deleted, nil
 }

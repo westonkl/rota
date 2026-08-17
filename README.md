@@ -183,7 +183,27 @@ rota check ./notes
 
 ---
 
-### 7. Reset Progress (`rota reset`)
+### 7. Import Flashcards (`rota import`)
+
+Convert external deck packages (default: Anki `.apkg`) into clean Markdown notes and index them into SQLite:
+
+```bash
+# Import deck (defaults to Anki format)
+rota import Computer_Science.apkg
+
+# Specify custom output and media directories
+rota import Anatomy.apkg --out ./notes/decks/ --media-dir ./notes/media/
+
+# Override deck name
+rota import Deck.apkg --deck "Algorithms"
+
+# Preserve previous review intervals & history
+rota import Deck.apkg --with-history
+```
+
+---
+
+### 8. Reset Progress (`rota reset`)
 
 Resets all FSRS scheduling progress and review logs back to the initial state:
 
@@ -198,6 +218,7 @@ rota reset
 - `-d, --db <path>`: Custom SQLite database path (default: `~/.local/share/rota/rota.db` or `.rota/rota.db`).
 - `-p, --path <path>`: Default vault/notes directory (default: `.`).
 - `-r, --retention <float>`: Target retention rate for FSRS (default: `0.90`).
+- `--theme <auto|light|dark>`: Terminal color theme (or set `ROTA_THEME`).
 
 You can also set the `ROTA_DB` environment variable:
 ```bash
@@ -213,3 +234,12 @@ Run the test suite:
 ```bash
 go test -v ./...
 ```
+
+---
+
+## TO DO
+
+- fix history (recent activity)
+- create heatmap for history
+- export to anki format
+- 

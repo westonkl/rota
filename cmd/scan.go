@@ -103,6 +103,10 @@ func RunScan(targets []string) (totalFiles, totalCards, totalAdded, totalUpdated
 		totalDeleted += syncRes.Deleted
 	}
 
+	if orphanDeleted, err := store.CleanOrphanFiles(); err == nil && orphanDeleted > 0 {
+		totalDeleted += orphanDeleted
+	}
+
 	return totalFiles, totalCards, totalAdded, totalUpdated, totalUnchanged, totalDeleted, nil
 }
 

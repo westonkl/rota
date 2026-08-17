@@ -35,6 +35,7 @@ Usage:
   rota list              List all indexed cards and due dates
   rota add               Add a new card to a markdown file
   rota check [path]      Lint markdown files for invalid card formats
+  rota import <file>     Import flashcards (default: Anki .apkg) into Markdown & SQLite
   rota reset             Reset learning progress
 `,
 	PersistentPreRunE: func(cmd *cobra.Command, args []string) error {

@@ -66,13 +66,13 @@ type ReviewLogEntry struct {
 }
 
 // ComputeMeaningHash creates a normalized, stable SHA-256 hash of the card content.
-// This allows notes to be reformatted or moved without losing review history.
-func ComputeMeaningHash(deck, prompt, answer string) string {
-	normDeck := strings.TrimSpace(strings.ToLower(deck))
+// By hashing the prompt and answer (without deck coupling), cards can be renamed,
+// reorganized across decks, or moved without resetting review history.
+func ComputeMeaningHash(prompt, answer string) string {
 	normPrompt := normalizeText(prompt)
 	normAnswer := normalizeText(answer)
 
-	input := fmt.Sprintf("%s|%s|%s", normDeck, normPrompt, normAnswer)
+	input := fmt.Sprintf("%s|%s", normPrompt, normAnswer)
 	h := sha256.Sum256([]byte(input))
 	return hex.EncodeToString(h[:16]) // 32-character hex string
 }

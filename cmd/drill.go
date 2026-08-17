@@ -44,27 +44,54 @@ var drillCmd = &cobra.Command{
 		now := time.Now().UTC()
 		var cards []*card.Card
 		var err error
+		var targetPath string
+		if len(args) > 0 {
+			targetPath = args[0]
+		}
 
 		if flagAllCards {
 			filter := db.CardFilter{
-				Deck:  flagDeck,
-				Limit: flagLimit,
+				Deck:     flagDeck,
+				FilePath: targetPath,
+				Limit:    flagLimit,
 			}
 			cards, err = store.ListCards(filter)
 		} else if flagNewOnly {
 			newState := gofsrs.New
 			filter := db.CardFilter{
-				Deck:  flagDeck,
-				State: &newState,
-				Limit: flagLimit,
+				Deck:     flagDeck,
+				FilePath: targetPath,
+				State:    &newState,
+				Limit:    flagLimit,
 			}
 			cards, err = store.ListCards(filter)
 		} else {
-			cards, err = store.GetDueCards(flagDeck, flagLimit, now)
+			if targetPath != "" {
+				filter := db.CardFilter{
+					Deck:     flagDeck,
+					FilePath: targetPath,
+					DueOnly:  true,
+					Now:      now,
+					Limit:    flagLimit,
+				}
+				cards, err = store.ListCards(filter)
+			} else {
+				cards, err = store.GetDueCards(flagDeck, flagLimit, now)
+			}
 		}
 
 		if err != nil {
 			return fmt.Errorf("failed to fetch review cards: %w", err)
+		}
+
+		if len(cards) == 0 {
+			fmt.Println(tui.StyleTitle.Render("✦ All caught up!"))
+			fmt.Println("No cards currently due for review in this selection.")
+			fmt.Println("\nTips:")
+			fmt.Println("  • Run 'rota drill -a' (or --all) to cram/review cards ahead of schedule.")
+			fmt.Println("  • Run 'rota stats' to view your review streak, deck stats, and upcoming schedule.")
+			fmt.Println("  • Run 'rota list' to view all indexed cards.")
+			return nil
 		}
 
 		if flagPlainMode {

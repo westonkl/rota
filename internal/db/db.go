@@ -102,7 +102,22 @@ func Open(dbPath string) (*Store, error) {
 		return nil, fmt.Errorf("failed to execute database schema: %w", err)
 	}
 
+	// Clean up any duplicate records across case-sensitive paths
+	_ = deduplicateCards(db)
+
 	return &Store{db: db}, nil
+}
+
+func deduplicateCards(db *sql.DB) error {
+	_, err := db.Exec(`
+		DELETE FROM cards WHERE id NOT IN (
+			SELECT id FROM (
+				SELECT id, ROW_NUMBER() OVER (PARTITION BY hash ORDER BY updated_at DESC, created_at DESC) as rn
+				FROM cards
+			) WHERE rn = 1
+		);
+	`)
+	return err
 }
 
 // Close closes the database connection.
