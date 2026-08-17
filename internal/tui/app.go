@@ -368,8 +368,17 @@ func (m *AppModel) viewReviewing() string {
 	curr := m.cards[m.currIndex]
 	boxWidth := min(m.width-4, 80)
 
-	// Top Bar: Deck Badge | Progress [███░░░] 3/10 | State Badge
+	// Top Bar: Deck Badge | Tags | Progress [███░░░] 3/10 | State Badge
 	deckBadge := StyleDeckBadge.Render(curr.Deck)
+	var tagPills string
+	if len(curr.Tags) > 0 {
+		var tagLabels []string
+		for _, t := range curr.Tags {
+			tagLabels = append(tagLabels, lipgloss.NewStyle().Foreground(ColorSubtle).Render("#"+t))
+		}
+		tagPills = "  " + strings.Join(tagLabels, " ")
+	}
+
 	progressText := fmt.Sprintf("%d/%d", m.currIndex+1, len(m.cards))
 	bar := ProgressBar(m.currIndex+1, len(m.cards), 12)
 
@@ -390,6 +399,7 @@ func (m *AppModel) viewReviewing() string {
 	topBar := lipgloss.JoinHorizontal(
 		lipgloss.Center,
 		deckBadge,
+		tagPills,
 		"  ",
 		bar,
 		" ",

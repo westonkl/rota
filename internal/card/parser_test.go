@@ -44,7 +44,7 @@ C: Channels in Go can be either [buffered] or [unbuffered]. #channels
 	if c1.Type != TypeQA {
 		t.Errorf("expected TypeQA, got %v", c1.Type)
 	}
-	if c1.Prompt != "What is a Goroutine? #concurrency #go" {
+	if c1.Prompt != "What is a Goroutine?" {
 		t.Errorf("unexpected prompt: %s", c1.Prompt)
 	}
 	if c1.Answer != "A lightweight thread of execution managed by the Go runtime." {
@@ -68,10 +68,10 @@ C: Channels in Go can be either [buffered] or [unbuffered]. #channels
 	if c3.Type != TypeCloze {
 		t.Errorf("expected TypeCloze, got %v", c3.Type)
 	}
-	if c3.Prompt != "Channels in Go can be either [...] or [...]. #channels" {
+	if c3.Prompt != "Channels in Go can be either [...] or [...]." {
 		t.Errorf("unexpected cloze front: %s", c3.Prompt)
 	}
-	if c3.Answer != "Channels in Go can be either **[buffered]** or **[unbuffered]**. #channels" {
+	if c3.Answer != "Channels in Go can be either **[buffered]** or **[unbuffered]**." {
 		t.Errorf("unexpected cloze back: %s", c3.Answer)
 	}
 }

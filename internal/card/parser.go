@@ -86,17 +86,28 @@ func ParseContent(content []byte, filePath, defaultDeck string) ([]*Card, error)
 	var cardStartLine int
 	var explicitID string
 
+	cardCountForHash := make(map[string]int)
+
 	flushCard := func(endLine int) {
 		now := time.Now().UTC()
 		if state == stateAnswer && len(qLines) > 0 && len(aLines) > 0 {
-			qText := strings.TrimSpace(strings.Join(qLines, "\n"))
-			aText := strings.TrimSpace(strings.Join(aLines, "\n"))
-			if qText != "" && aText != "" {
-				tags := extractTags(qText + "\n" + aText)
-				hash := ComputeMeaningHash(currentDeck, qText, aText)
+			qRaw := strings.TrimSpace(strings.Join(qLines, "\n"))
+			aRaw := strings.TrimSpace(strings.Join(aLines, "\n"))
+			if qRaw != "" && aRaw != "" {
+				tags := extractTags(qRaw + "\n" + aRaw)
+				qClean := stripTags(qRaw)
+				aClean := stripTags(aRaw)
+				hash := ComputeMeaningHash(currentDeck, qClean, aClean)
+				cardCountForHash[hash]++
+				count := cardCountForHash[hash]
+
 				cardID := explicitID
 				if cardID == "" {
-					cardID = hash
+					if count > 1 {
+						cardID = fmt.Sprintf("%s_%d", hash, count)
+					} else {
+						cardID = hash
+					}
 				}
 
 				cards = append(cards, &Card{
@@ -106,24 +117,28 @@ func ParseContent(content []byte, filePath, defaultDeck string) ([]*Card, error)
 					FilePath:   filePath,
 					LineNumber: cardStartLine,
 					Type:       TypeQA,
-					Prompt:     qText,
-					Answer:     aText,
+					Prompt:     qClean,
+					Answer:     aClean,
 					Tags:       tags,
 					CreatedAt:  now,
 					UpdatedAt:  now,
 				})
 			}
 		} else if state == stateCloze && len(cLines) > 0 {
-			cText := strings.TrimSpace(strings.Join(cLines, "\n"))
-			if cText != "" {
-				clozes := ProcessClozeText(cText)
+			cRaw := strings.TrimSpace(strings.Join(cLines, "\n"))
+			if cRaw != "" {
+				tags := extractTags(cRaw)
+				cClean := stripTags(cRaw)
+				clozes := ProcessClozeText(cClean)
 				for idx, cl := range clozes {
-					tags := extractTags(cText)
 					hash := ComputeMeaningHash(currentDeck, cl.FrontText, cl.BackText)
+					cardCountForHash[hash]++
+					count := cardCountForHash[hash]
+
 					cardID := explicitID
 					if cardID == "" {
-						if len(clozes) > 1 {
-							cardID = fmt.Sprintf("%s_%d", hash, idx)
+						if len(clozes) > 1 || count > 1 {
+							cardID = fmt.Sprintf("%s_%d_%d", hash, idx, count)
 						} else {
 							cardID = hash
 						}
@@ -155,10 +170,23 @@ func ParseContent(content []byte, filePath, defaultDeck string) ([]*Card, error)
 		state = stateNone
 	}
 
+	inTopLevelCode := false
 	for i := lineIdx; i < len(lines); i++ {
 		line := lines[i]
 		trimmed := strings.TrimSpace(line)
 		lineNum := i + 1
+
+		// Check for markdown code fences at top level
+		if strings.HasPrefix(trimmed, "```") {
+			if state == stateNone {
+				inTopLevelCode = !inTopLevelCode
+				continue
+			}
+		}
+
+		if inTopLevelCode {
+			continue
+		}
 
 		// Check for explicit ID comment
 		if idMatch := explicitIDRegex.FindStringSubmatch(trimmed); len(idMatch) > 1 {
@@ -259,6 +287,12 @@ func extractTags(text string) []string {
 		tags = append(tags, tag)
 	}
 	return tags
+}
+
+// stripTags removes `#tag` annotations from display text while preserving markdown formatting.
+func stripTags(text string) string {
+	cleaned := tagRegex.ReplaceAllString(text, "")
+	return strings.TrimSpace(cleaned)
 }
 
 // WriteCardToWriter writes a Q/A or Cloze card formatted in clean markdown.

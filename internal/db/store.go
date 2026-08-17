@@ -3,6 +3,7 @@ package db
 import (
 	"database/sql"
 	"fmt"
+	"path/filepath"
 	"strings"
 	"time"
 
@@ -56,6 +57,11 @@ type SyncResult struct {
 
 // SyncFileCards synchronizes a slice of parsed cards from a given file into the database.
 func (s *Store) SyncFileCards(filePath string, parsed []*card.Card) (*SyncResult, error) {
+	filePath = filepath.Clean(filePath)
+	if abs, err := filepath.Abs(filePath); err == nil {
+		filePath = abs
+	}
+
 	tx, err := s.db.Begin()
 	if err != nil {
 		return nil, fmt.Errorf("failed to begin transaction: %w", err)
@@ -65,13 +71,15 @@ func (s *Store) SyncFileCards(filePath string, parsed []*card.Card) (*SyncResult
 	result := &SyncResult{}
 	now := time.Now().UTC()
 
-	// Get all existing cards for this file path
-	rows, err := tx.Query("SELECT id, hash, deck, line_number, prompt, answer, tags FROM cards WHERE file_path = ?", filePath)
+	// Get all existing cards for this file path (or basename)
+	baseName := filepath.Base(filePath)
+	rows, err := tx.Query("SELECT id, hash, deck, line_number, prompt, answer, tags FROM cards WHERE file_path = ? OR file_path LIKE ?", filePath, "%"+baseName)
 	if err != nil {
 		return nil, fmt.Errorf("failed to query existing cards: %w", err)
 	}
 	defer rows.Close()
 
+	existingByID := make(map[string]*card.Card)
 	existingByHash := make(map[string]*card.Card)
 	for rows.Next() {
 		var c card.Card
@@ -82,25 +90,30 @@ func (s *Store) SyncFileCards(filePath string, parsed []*card.Card) (*SyncResult
 		if tagsStr.Valid && tagsStr.String != "" {
 			c.Tags = strings.Split(tagsStr.String, ",")
 		}
+		existingByID[c.ID] = &c
 		existingByHash[c.Hash] = &c
 	}
 	rows.Close()
 
-	seenHashes := make(map[string]bool)
+	seenIDs := make(map[string]bool)
 
 	for _, c := range parsed {
-		seenHashes[c.Hash] = true
+		seenIDs[c.ID] = true
 		tagsJoined := strings.Join(c.Tags, ",")
 
-		if existing, found := existingByHash[c.Hash]; found {
-			// Card already exists with matching hash
-			// Check if metadata (line number, prompt formatting, tags) updated
+		existing, found := existingByID[c.ID]
+		if !found {
+			existing, found = existingByHash[c.Hash]
+		}
+
+		if found {
+			// Card already exists with matching ID or Hash
 			if existing.LineNumber != c.LineNumber || existing.Prompt != c.Prompt || existing.Answer != c.Answer || existing.Deck != c.Deck || strings.Join(existing.Tags, ",") != tagsJoined {
 				_, err := tx.Exec(`
 					UPDATE cards 
-					SET deck = ?, line_number = ?, prompt = ?, answer = ?, extra = ?, tags = ?, updated_at = ?
+					SET deck = ?, file_path = ?, line_number = ?, prompt = ?, answer = ?, extra = ?, tags = ?, updated_at = ?
 					WHERE id = ?
-				`, c.Deck, c.LineNumber, c.Prompt, c.Answer, c.Extra, tagsJoined, now, existing.ID)
+				`, c.Deck, filePath, c.LineNumber, c.Prompt, c.Answer, c.Extra, tagsJoined, now, existing.ID)
 				if err != nil {
 					return nil, fmt.Errorf("failed to update card: %w", err)
 				}
@@ -108,17 +121,30 @@ func (s *Store) SyncFileCards(filePath string, parsed []*card.Card) (*SyncResult
 			} else {
 				result.Unchanged++
 			}
+			existingByID[existing.ID] = c
+			existingByHash[existing.Hash] = c
 		} else {
-			// Brand new card
+			// Brand new card (with ON CONFLICT fallback for complete safety)
 			_, err := tx.Exec(`
 				INSERT INTO cards (id, hash, deck, file_path, line_number, card_type, prompt, answer, extra, tags, created_at, updated_at)
 				VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+				ON CONFLICT(id) DO UPDATE SET
+					hash = excluded.hash,
+					deck = excluded.deck,
+					file_path = excluded.file_path,
+					line_number = excluded.line_number,
+					card_type = excluded.card_type,
+					prompt = excluded.prompt,
+					answer = excluded.answer,
+					extra = excluded.extra,
+					tags = excluded.tags,
+					updated_at = excluded.updated_at
 			`, c.ID, c.Hash, c.Deck, filePath, c.LineNumber, string(c.Type), c.Prompt, c.Answer, c.Extra, tagsJoined, now, now)
 			if err != nil {
 				return nil, fmt.Errorf("failed to insert new card: %w", err)
 			}
 
-			// Initialize FSRS state for new card
+			// Initialize FSRS state for new card (if not already existing)
 			initialState := card.NewDefaultFSRSState()
 			dueStr := initialState.Due.UTC().Format("2006-01-02 15:04:05")
 			var lastRevStr sql.NullString
@@ -128,19 +154,22 @@ func (s *Store) SyncFileCards(filePath string, parsed []*card.Card) (*SyncResult
 			_, err = tx.Exec(`
 				INSERT INTO card_fsrs (card_id, due, stability, difficulty, elapsed_days, scheduled_days, reps, lapses, state, last_review)
 				VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+				ON CONFLICT(card_id) DO NOTHING
 			`, c.ID, dueStr, initialState.Stability, initialState.Difficulty, initialState.ElapsedDays, initialState.ScheduledDays, initialState.Reps, initialState.Lapses, int(initialState.State), lastRevStr)
 			if err != nil {
 				return nil, fmt.Errorf("failed to initialize fsrs state: %w", err)
 			}
 
+			existingByID[c.ID] = c
+			existingByHash[c.Hash] = c
 			result.Added++
 		}
 	}
 
 	// Remove cards in database that no longer exist in this file
-	for hash, existing := range existingByHash {
-		if !seenHashes[hash] {
-			_, err := tx.Exec("DELETE FROM cards WHERE id = ?", existing.ID)
+	for id, existing := range existingByID {
+		if !seenIDs[id] && (existing.FilePath == filePath || strings.HasSuffix(existing.FilePath, baseName)) {
+			_, err := tx.Exec("DELETE FROM cards WHERE id = ?", id)
 			if err != nil {
 				return nil, fmt.Errorf("failed to delete removed card: %w", err)
 			}
