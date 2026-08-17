@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/open-spaced-repetition/go-fsrs/v3"
+	"github.com/open-spaced-repetition/go-fsrs/v4"
 )
 
 // CardType identifies the kind of flashcard.
@@ -95,7 +95,6 @@ func (f *FSRSState) ToFSRSCard() fsrs.Card {
 		Due:           f.Due,
 		Stability:     f.Stability,
 		Difficulty:    f.Difficulty,
-		ElapsedDays:   f.ElapsedDays,
 		ScheduledDays: f.ScheduledDays,
 		Reps:          f.Reps,
 		Lapses:        f.Lapses,
@@ -110,7 +109,6 @@ func FromFSRSCard(c fsrs.Card) *FSRSState {
 		Due:           c.Due,
 		Stability:     c.Stability,
 		Difficulty:    c.Difficulty,
-		ElapsedDays:   c.ElapsedDays,
 		ScheduledDays: c.ScheduledDays,
 		Reps:          c.Reps,
 		Lapses:        c.Lapses,

@@ -8,7 +8,7 @@ import (
 	"time"
 
 	tea "github.com/charmbracelet/bubbletea"
-	gofsrs "github.com/open-spaced-repetition/go-fsrs/v3"
+	gofsrs "github.com/open-spaced-repetition/go-fsrs/v4"
 	"github.com/spf13/cobra"
 
 	"rota/internal/card"

@@ -9,7 +9,7 @@ import (
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
-	gofsrs "github.com/open-spaced-repetition/go-fsrs/v3"
+	gofsrs "github.com/open-spaced-repetition/go-fsrs/v4"
 
 	"rota/internal/card"
 	"rota/internal/db"

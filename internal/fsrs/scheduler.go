@@ -5,7 +5,7 @@ import (
 	"math"
 	"time"
 
-	gofsrs "github.com/open-spaced-repetition/go-fsrs/v3"
+	gofsrs "github.com/open-spaced-repetition/go-fsrs/v4"
 )
 
 // Scheduler coordinates FSRS calculations and scheduling previews.
@@ -52,18 +52,29 @@ func NewScheduler(cfg Config) *Scheduler {
 
 // Next calculates the next card state and review log given a rating.
 func (s *Scheduler) Next(card gofsrs.Card, now time.Time, rating gofsrs.Rating) (gofsrs.Card, gofsrs.ReviewLog) {
-	info := s.fsrs.Next(card, now, rating)
+	info, err := s.fsrs.Next(card, now, rating)
+	if err != nil {
+		return card, gofsrs.ReviewLog{}
+	}
 	return info.Card, info.ReviewLog
 }
 
 // Repeat returns the scheduling options for all 4 ratings (Again, Hard, Good, Easy).
 func (s *Scheduler) Repeat(card gofsrs.Card, now time.Time) gofsrs.RecordLog {
-	return s.fsrs.Repeat(card, now)
+	records, err := s.fsrs.Repeat(card, now)
+	if err != nil {
+		return make(gofsrs.RecordLog)
+	}
+	return records
 }
 
 // GetRetrievability returns the probability of recalling the card at time `now`.
 func (s *Scheduler) GetRetrievability(card gofsrs.Card, now time.Time) float64 {
-	return s.fsrs.GetRetrievability(card, now)
+	r, err := s.fsrs.Retrievability(card, now)
+	if err != nil {
+		return 0.0
+	}
+	return r
 }
 
 // PreviewIntervals returns a map of human-readable interval strings for each rating button.

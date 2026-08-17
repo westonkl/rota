@@ -9,7 +9,7 @@ Inspired by [shaankhosla/repeater](https://github.com/shaankhosla/repeater), `ro
 ## ✨ Features
 
 - 📝 **Markdown-First Workflow**: Flashcards live directly inside your notes. No proprietary card editors or separate sync databases required.
-- 🧠 **FSRS Algorithm**: Powered by the state-of-the-art Free Spaced Repetition Scheduler (`go-fsrs/v3`) for optimized retention (~90% recall target).
+- 🧠 **FSRS Algorithm**: Powered by the state-of-the-art Free Spaced Repetition Scheduler (`go-fsrs/v4`) for optimized retention (~90% recall target).
 - 🗄️ **Zero-Configuration SQLite**: Fast, pure-Go SQLite persistence with automatic indexing, transactions, and meaning-only content hashing.
 - 🎨 **Terminal UI**: Interactive, responsive TUI built with [Charm Bubble Tea](https://github.com/charmbracelet/bubbletea), [Lip Gloss](https://github.com/charmbracelet/lipgloss), and syntax-highlighted Markdown rendering via [Glamour](https://github.com/charmbracelet/glamour).
 - 🏷️ **Q/A & Cloze Deletions**: Seamless support for multi-line Question/Answer blocks, bracket clozes `[like this]`, and Anki-style clozes `{{c1::like this}}`.

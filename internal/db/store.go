@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	gofsrs "github.com/open-spaced-repetition/go-fsrs/v3"
+	gofsrs "github.com/open-spaced-repetition/go-fsrs/v4"
 	"rota/internal/card"
 )
 
