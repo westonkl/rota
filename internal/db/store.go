@@ -13,27 +13,27 @@ import (
 
 // DeckSummary aggregates stats for a single deck.
 type DeckSummary struct {
-	Name         string    `json:"name"`
-	TotalCards   int       `json:"total_cards"`
-	NewCards     int       `json:"new_cards"`
-	LearningCards int      `json:"learning_cards"`
-	ReviewCards  int       `json:"review_cards"`
-	DueCards     int       `json:"due_cards"`
-	NextDue      *time.Time `json:"next_due,omitempty"`
+	Name          string     `json:"name"`
+	TotalCards    int        `json:"total_cards"`
+	NewCards      int        `json:"new_cards"`
+	LearningCards int        `json:"learning_cards"`
+	ReviewCards   int        `json:"review_cards"`
+	DueCards      int        `json:"due_cards"`
+	NextDue       *time.Time `json:"next_due,omitempty"`
 }
 
 // StatsSummary gives high-level metrics for the entire collection.
 type StatsSummary struct {
-	TotalCards     int               `json:"total_cards"`
-	TotalDecks     int               `json:"total_decks"`
-	TotalReviews   int               `json:"total_reviews"`
-	RetentionRate  float64           `json:"retention_rate"`
-	CurrentStreak  int               `json:"current_streak"`
-	DueToday       int               `json:"due_today"`
-	NewToday       int               `json:"new_today"`
-	ReviewsByDay   map[string]int    `json:"reviews_by_day"`
-	RatingsCount   map[gofsrs.Rating]int `json:"ratings_count"`
-	DeckBreakdown  []DeckSummary     `json:"deck_breakdown"`
+	TotalCards    int                   `json:"total_cards"`
+	TotalDecks    int                   `json:"total_decks"`
+	TotalReviews  int                   `json:"total_reviews"`
+	RetentionRate float64               `json:"retention_rate"`
+	CurrentStreak int                   `json:"current_streak"`
+	DueToday      int                   `json:"due_today"`
+	NewToday      int                   `json:"new_today"`
+	ReviewsByDay  map[string]int        `json:"reviews_by_day"`
+	RatingsCount  map[gofsrs.Rating]int `json:"ratings_count"`
+	DeckBreakdown []DeckSummary         `json:"deck_breakdown"`
 }
 
 // CardFilter defines query filtering for cards.
@@ -201,7 +201,7 @@ func (s *Store) GetDueCards(deck string, limit int, now time.Time) ([]*card.Card
 		JOIN card_fsrs f ON c.id = f.card_id
 		WHERE (f.state = 0 OR f.due <= ?)
 	`
-	args := []interface{}{now}
+	args := []any{now}
 
 	if deck != "" {
 		query += " AND c.deck = ?"
@@ -246,7 +246,7 @@ func (s *Store) ListCards(filter CardFilter) ([]*card.Card, error) {
 		LEFT JOIN card_fsrs f ON c.id = f.card_id
 		WHERE 1=1
 	`
-	var args []interface{}
+	var args []any
 
 	if filter.Deck != "" {
 		query += " AND c.deck = ?"

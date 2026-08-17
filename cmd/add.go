@@ -81,7 +81,7 @@ var addCmd = &cobra.Command{
 				tagsInput, _ := reader.ReadString('\n')
 				tagsInput = strings.TrimSpace(tagsInput)
 				if tagsInput != "" {
-					for _, t := range strings.Fields(strings.ReplaceAll(tagsInput, ",", " ")) {
+					for t := range strings.FieldsSeq(strings.ReplaceAll(tagsInput, ",", " ")) {
 						tags = append(tags, strings.TrimPrefix(t, "#"))
 					}
 				}

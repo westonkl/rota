@@ -137,10 +137,7 @@ func renderBar(percent float64, color lipgloss.TerminalColor) string {
 	if filled > width {
 		filled = width
 	}
-	empty := width - filled
-	if empty < 0 {
-		empty = 0
-	}
+	empty := max(width-filled, 0)
 
 	bar := strings.Repeat("█", filled) + strings.Repeat("░", empty)
 	return lipgloss.NewStyle().Foreground(color).Render(bar)

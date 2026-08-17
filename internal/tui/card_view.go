@@ -54,10 +54,7 @@ func RenderMarkdown(in string, width int) string {
 		return ""
 	}
 
-	wrapWidth := width - 6
-	if wrapWidth < 20 {
-		wrapWidth = 20
-	}
+	wrapWidth := max(width-6, 20)
 
 	styleName := "dark"
 	if IsLightMode() {

@@ -44,11 +44,11 @@ type AppModel struct {
 	history []ReviewedItem
 
 	// Session Metrics
-	startTime   time.Time
-	againCount  int
-	hardCount   int
-	goodCount   int
-	easyCount   int
+	startTime  time.Time
+	againCount int
+	hardCount  int
+	goodCount  int
+	easyCount  int
 
 	state  SessionState
 	width  int
@@ -502,11 +502,4 @@ func (m *AppModel) viewReviewing() string {
 			footerHelp,
 		),
 	)
-}
-
-func min(a, b int) int {
-	if a < b {
-		return a
-	}
-	return b
 }

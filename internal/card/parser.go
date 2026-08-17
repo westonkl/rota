@@ -13,10 +13,10 @@ import (
 )
 
 var (
-	tagRegex       = regexp.MustCompile(`(^|\s)#([a-zA-Z0-9_\-/]+)`)
+	tagRegex        = regexp.MustCompile(`(^|\s)#([a-zA-Z0-9_\-/]+)`)
 	explicitIDRegex = regexp.MustCompile(`<!--\s*(?:id:|rota:id=)\s*([a-zA-Z0-9_\-]+)\s*-->`)
-	frontmatterSep = regexp.MustCompile(`^---[ \t]*$`)
-	dividerRegex   = regexp.MustCompile(`^(?:---+|\*\*\*+|===+)[ \t]*$`)
+	frontmatterSep  = regexp.MustCompile(`^---[ \t]*$`)
+	dividerRegex    = regexp.MustCompile(`^(?:---+|\*\*\*+|===+)[ \t]*$`)
 )
 
 // ParseFile parses a markdown file and extracts all flashcards.
@@ -58,8 +58,8 @@ func ParseContent(content []byte, filePath, defaultDeck string) ([]*Card, error)
 			// Extract deck or tags from frontmatter
 			for i := 1; i < endIdx; i++ {
 				line := strings.TrimSpace(lines[i])
-				if strings.HasPrefix(line, "deck:") {
-					val := strings.TrimSpace(strings.TrimPrefix(line, "deck:"))
+				if after, ok := strings.CutPrefix(line, "deck:"); ok {
+					val := strings.TrimSpace(after)
 					val = strings.Trim(val, `"'`)
 					if val != "" {
 						currentDeck = val

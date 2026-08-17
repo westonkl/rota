@@ -17,11 +17,11 @@ import (
 )
 
 var (
-	flagDeck      string
-	flagLimit     int
-	flagAllCards  bool
-	flagNewOnly   bool
-	flagPlainMode bool
+	flagDeck       string
+	flagLimit      int
+	flagAllCards   bool
+	flagNewOnly    bool
+	flagPlainMode  bool
 	flagNoAutoSync bool
 )
 

@@ -41,8 +41,8 @@ var (
 			Bold(true)
 
 	StyleCountReview = lipgloss.NewStyle().
-			Foreground(ColorSuccess).
-			Bold(true)
+				Foreground(ColorSuccess).
+				Bold(true)
 
 	StyleCardBox = lipgloss.NewStyle().
 			Border(lipgloss.RoundedBorder()).
@@ -54,8 +54,8 @@ var (
 			Foreground(ColorBorder)
 
 	StyleAnswerHeader = lipgloss.NewStyle().
-			Foreground(ColorSecondary).
-			Bold(true)
+				Foreground(ColorSecondary).
+				Bold(true)
 
 	// Buttons for grading
 	StyleBtnAgain = lipgloss.NewStyle().
@@ -89,9 +89,9 @@ var (
 			Bold(true)
 
 	StyleSummaryCard = lipgloss.NewStyle().
-			Border(lipgloss.RoundedBorder()).
-			BorderForeground(ColorPrimary).
-			Padding(1, 3)
+				Border(lipgloss.RoundedBorder()).
+				BorderForeground(ColorPrimary).
+				Padding(1, 3)
 
 	StyleStreak = lipgloss.NewStyle().
 			Foreground(ColorWarning).
