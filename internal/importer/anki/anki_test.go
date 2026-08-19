@@ -33,9 +33,9 @@ func TestHTMLToMarkdown(t *testing.T) {
 			expected: "```\nfmt.Println(\"Hello\")\n```",
 		},
 		{
-			name:     "Image link",
-			input:    "Check this: <img src=\"diagram.png\">",
-			expected: "Check this: ![](./media/diagram.png)",
+			name:     "Strip image tag",
+			input:    "Check this: <img src=\"diagram.png\"> and continue",
+			expected: "Check this: and continue",
 		},
 		{
 			name:     "HTML entities",
@@ -46,7 +46,7 @@ func TestHTMLToMarkdown(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			actual := HTMLToMarkdown(tt.input, "./media/")
+			actual := HTMLToMarkdown(tt.input)
 			if actual != tt.expected {
 				t.Errorf("expected %q, got %q", tt.expected, actual)
 			}

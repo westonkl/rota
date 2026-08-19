@@ -133,7 +133,7 @@ func (m *AppModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				return m.handleRating(gofsrs.Hard)
 			case key == "3" || key == "g" || key == "G" || msg.Type == tea.KeyUp:
 				return m.handleRating(gofsrs.Good)
-			case key == "4" || key == "e" || key == "E" || key == "d" || key == "D" || msg.Type == tea.KeyRight:
+			case key == "4" || key == "d" || key == "D" || msg.Type == tea.KeyRight:
 				return m.handleRating(gofsrs.Easy)
 			}
 		}
@@ -144,7 +144,7 @@ func (m *AppModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 
 		// 5. Open in editor
-		if (key == "o" || key == "O") && m.state == StateReviewing && len(m.cards) > 0 && m.currIndex < len(m.cards) {
+		if (key == "e" || key == "E" || key == "o" || key == "O") && m.state == StateReviewing && len(m.cards) > 0 && m.currIndex < len(m.cards) {
 			return m, m.openInEditorCmd()
 		}
 	}
@@ -473,9 +473,9 @@ func (m *AppModel) viewReviewing() string {
 	// Footer Help
 	footerHelp := lipgloss.JoinHorizontal(
 		lipgloss.Center,
-		StyleHelpKey.Render("[1-4 / a,h,g,e]"), StyleHelp.Render(" Grade   "),
+		StyleHelpKey.Render("[1-4 / a,h,g,d]"), StyleHelp.Render(" Grade   "),
 		StyleHelpKey.Render("[u]"), StyleHelp.Render(" Undo   "),
-		StyleHelpKey.Render("[o]"), StyleHelp.Render(" Open in Editor   "),
+		StyleHelpKey.Render("[e]"), StyleHelp.Render(" Edit   "),
 		StyleHelpKey.Render("[q]"), StyleHelp.Render(" Exit"),
 	)
 

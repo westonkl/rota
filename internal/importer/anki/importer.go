@@ -15,7 +15,6 @@ import (
 type ImportOptions struct {
 	APKGPath     string
 	OutputDir    string
-	MediaDir     string
 	WithHistory  bool
 	DeckOverride string
 }
@@ -37,35 +36,24 @@ func (imp *Importer) Import(opts ImportOptions) (*ImportResult, error) {
 	if opts.OutputDir == "" {
 		opts.OutputDir = "./decks"
 	}
-	if opts.MediaDir == "" {
-		opts.MediaDir = filepath.Join(opts.OutputDir, "media")
-	}
 
 	if err := os.MkdirAll(opts.OutputDir, 0755); err != nil {
 		return nil, fmt.Errorf("failed to create output directory %s: %w", opts.OutputDir, err)
 	}
 
-	// Calculate media relative prefix for markdown images
-	mediaRelPrefix := "./media/"
-	if rel, err := filepath.Rel(opts.OutputDir, opts.MediaDir); err == nil {
-		mediaRelPrefix = "./" + rel + "/"
-		mediaRelPrefix = filepath.ToSlash(mediaRelPrefix)
-	}
-
 	// 1. Read Anki package
-	pkg, err := ReadAPKG(opts.APKGPath, opts.MediaDir)
+	pkg, err := ReadAPKG(opts.APKGPath)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse anki package: %w", err)
 	}
 
-	// 2. Convert notes to cards
-	converted := pkg.ConvertToCards(mediaRelPrefix)
+	// 2. Convert notes to cards (images and audio stripped)
+	converted := pkg.ConvertToCards()
 	if len(converted) == 0 {
 		return &ImportResult{
-			TotalDecks:     len(pkg.Decks),
-			TotalNotes:     len(pkg.Notes),
-			TotalCards:     0,
-			MediaExtracted: pkg.MediaCount,
+			TotalDecks: len(pkg.Decks),
+			TotalNotes: len(pkg.Notes),
+			TotalCards: 0,
 		}, nil
 	}
 
@@ -141,7 +129,6 @@ func (imp *Importer) Import(opts ImportOptions) (*ImportResult, error) {
 		TotalDecks:     len(cardsByDeck),
 		TotalNotes:     len(pkg.Notes),
 		TotalCards:     len(converted),
-		MediaExtracted: pkg.MediaCount,
 		GeneratedFiles: generatedFiles,
 	}, nil
 }

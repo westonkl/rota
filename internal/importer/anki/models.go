@@ -76,6 +76,5 @@ type ImportResult struct {
 	TotalDecks     int
 	TotalNotes     int
 	TotalCards     int
-	MediaExtracted int
 	GeneratedFiles []string
 }

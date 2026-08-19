@@ -28,7 +28,7 @@ var (
 )
 
 // HTMLToMarkdown converts Anki HTML formatted fields into clean Markdown.
-func HTMLToMarkdown(raw string, mediaPrefix string) string {
+func HTMLToMarkdown(raw string) string {
 	if strings.TrimSpace(raw) == "" {
 		return ""
 	}
@@ -63,23 +63,11 @@ func HTMLToMarkdown(raw string, mediaPrefix string) string {
 		return m
 	})
 
-	// 2. Images: <img src="foo.png"> -> ![](./media/foo.png)
-	text = reImg.ReplaceAllStringFunc(text, func(m string) string {
-		match := reImg.FindStringSubmatch(m)
-		if len(match) > 1 {
-			src := strings.TrimSpace(match[1])
-			if mediaPrefix != "" && !strings.HasPrefix(src, "http") {
-				src = mediaPrefix + src
-			}
-			return "![](" + src + ")"
-		}
-		return ""
-	})
+	// 2. Strip images and sounds completely (text-first)
+	text = reImg.ReplaceAllString(text, "")
+	text = reSound.ReplaceAllString(text, "")
 
-	// 3. Audio sounds: [sound:foo.mp3] -> (Audio: foo.mp3)
-	text = reSound.ReplaceAllString(text, "(Audio: $1)")
-
-	// 4. Line breaks and block elements
+	// 3. Line breaks and block elements
 	text = reBr.ReplaceAllString(text, "\n")
 	text = reDivStart.ReplaceAllString(text, "\n")
 	text = reDivEnd.ReplaceAllString(text, "")

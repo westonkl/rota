@@ -191,8 +191,8 @@ Convert external deck packages (default: Anki `.apkg`) into clean Markdown notes
 # Import deck (defaults to Anki format)
 rota import Computer_Science.apkg
 
-# Specify custom output and media directories
-rota import Anatomy.apkg --out ./notes/decks/ --media-dir ./notes/media/
+# Specify custom output directory
+rota import Anatomy.apkg --out ./notes/decks/
 
 # Override deck name
 rota import Deck.apkg --deck "Algorithms"
@@ -239,7 +239,14 @@ go test -v ./...
 
 ## TO DO
 
-- fix history (recent activity)
-- create heatmap for history
+- create heatmap for history?
 - export to anki format
-- 
+- prefer new cards at the beginning of the session
+- add ability to shuffle
+
+----
+#### Go commands
+
+gofmt -w -s
+go mod tidy
+go vet

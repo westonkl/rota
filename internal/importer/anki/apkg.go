@@ -14,36 +14,23 @@ import (
 	_ "modernc.org/sqlite"
 )
 
-// AnkiPackage holds all extracted notes, cards, decks, and media from an .apkg file.
+// AnkiPackage holds all extracted notes, cards, and decks from an .apkg file.
 type AnkiPackage struct {
-	Decks       map[int64]*AnkiDeck
-	Models      map[int64]*AnkiModel
-	Notes       map[int64]*AnkiNote
-	Cards       []*AnkiCard
-	MediaMap    map[string]string
-	MediaCount  int
+	Decks  map[int64]*AnkiDeck
+	Models map[int64]*AnkiModel
+	Notes  map[int64]*AnkiNote
+	Cards  []*AnkiCard
 }
 
-// ReadAPKG parses an .apkg file from disk, extracting media to targetMediaDir.
-func ReadAPKG(apkgPath string, targetMediaDir string) (*AnkiPackage, error) {
+// ReadAPKG parses an .apkg file from disk.
+func ReadAPKG(apkgPath string) (*AnkiPackage, error) {
 	r, err := zip.OpenReader(apkgPath)
 	if err != nil {
 		return nil, fmt.Errorf("failed to open .apkg archive: %w", err)
 	}
 	defer r.Close()
 
-	// 1. Extract Media if media directory specified
-	var mediaMap map[string]string
-	mediaCount := 0
-	if targetMediaDir != "" {
-		mediaMap, mediaCount, err = ExtractMedia(r.File, targetMediaDir)
-		if err != nil {
-			// Log/continue with warning
-			fmt.Printf("Warning: failed to extract some media: %v\n", err)
-		}
-	}
-
-	// 2. Locate SQLite database (collection.anki21 or collection.anki2)
+	// Locate SQLite database (collection.anki21 or collection.anki2)
 	var dbFile *zip.File
 	for _, f := range r.File {
 		if f.Name == "collection.anki21" {
@@ -80,7 +67,7 @@ func ReadAPKG(apkgPath string, targetMediaDir string) (*AnkiPackage, error) {
 		return nil, fmt.Errorf("failed to extract anki database: %w", err)
 	}
 
-	// 3. Query Anki SQLite Database
+	// Query Anki SQLite Database
 	db, err := sql.Open("sqlite", tmpDBPath+"?_pragma=busy_timeout(5000)")
 	if err != nil {
 		return nil, fmt.Errorf("failed to connect to extracted anki db: %w", err)
@@ -88,11 +75,9 @@ func ReadAPKG(apkgPath string, targetMediaDir string) (*AnkiPackage, error) {
 	defer db.Close()
 
 	pkg := &AnkiPackage{
-		Decks:      make(map[int64]*AnkiDeck),
-		Models:     make(map[int64]*AnkiModel),
-		Notes:      make(map[int64]*AnkiNote),
-		MediaMap:   mediaMap,
-		MediaCount: mediaCount,
+		Decks:  make(map[int64]*AnkiDeck),
+		Models: make(map[int64]*AnkiModel),
+		Notes:  make(map[int64]*AnkiNote),
 	}
 
 	// Read collection table (col) for models and decks JSON
@@ -212,7 +197,7 @@ func readCards(db *sql.DB, pkg *AnkiPackage) error {
 }
 
 // ConvertToCards transforms Anki notes and cards into Rota converted cards.
-func (pkg *AnkiPackage) ConvertToCards(mediaRelPrefix string) []*ConvertedCard {
+func (pkg *AnkiPackage) ConvertToCards() []*ConvertedCard {
 	var converted []*ConvertedCard
 	now := time.Now().UTC()
 
@@ -248,9 +233,9 @@ func (pkg *AnkiPackage) ConvertToCards(mediaRelPrefix string) []*ConvertedCard {
 			}
 
 			// Convert Cloze to Rota syntax
-			mdText := HTMLToMarkdown(text, mediaRelPrefix)
+			mdText := HTMLToMarkdown(text)
 			rotaCloze := ConvertAnkiClozeToRota(mdText)
-			mdExtra := HTMLToMarkdown(extra, mediaRelPrefix)
+			mdExtra := HTMLToMarkdown(extra)
 
 			if strings.TrimSpace(rotaCloze) != "" {
 				converted = append(converted, &ConvertedCard{
@@ -280,13 +265,13 @@ func (pkg *AnkiPackage) ConvertToCards(mediaRelPrefix string) []*ConvertedCard {
 				front, back = back, front
 			}
 
-			mdFront := HTMLToMarkdown(front, mediaRelPrefix)
-			mdBack := HTMLToMarkdown(back, mediaRelPrefix)
+			mdFront := HTMLToMarkdown(front)
+			mdBack := HTMLToMarkdown(back)
 
 			// If back has additional fields (e.g. Extra), append them
 			if len(note.Fields) > 2 && card.Ord == 0 {
 				for i := 2; i < len(note.Fields); i++ {
-					if extra := HTMLToMarkdown(note.Fields[i], mediaRelPrefix); extra != "" {
+					if extra := HTMLToMarkdown(note.Fields[i]); extra != "" {
 						mdBack += "\n\n" + extra
 					}
 				}
@@ -314,8 +299,6 @@ func (pkg *AnkiPackage) ConvertToCards(mediaRelPrefix string) []*ConvertedCard {
 
 func calculateDueTime(c *AnkiCard, now time.Time) time.Time {
 	if c.Queue == 2 && c.Due > 0 {
-		// Review queue: due is day offset relative to collection creation (or days from now)
-		// For simplicity and safety, if interval > 0, set due based on interval
 		if c.Ivl > 0 {
 			return now.Add(time.Duration(c.Ivl) * 24 * time.Hour)
 		}

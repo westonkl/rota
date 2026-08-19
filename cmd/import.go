@@ -14,10 +14,9 @@ import (
 )
 
 var (
-	flagImportOutDir   string
-	flagImportMediaDir string
-	flagImportDeck     string
-	flagImportHistory  bool
+	flagImportOutDir  string
+	flagImportDeck    string
+	flagImportHistory bool
 )
 
 var importCmd = &cobra.Command{
@@ -71,7 +70,6 @@ func runAnkiImport(apkgPath string) error {
 	result, err := imp.Import(anki.ImportOptions{
 		APKGPath:     apkgPath,
 		OutputDir:    flagImportOutDir,
-		MediaDir:     flagImportMediaDir,
 		DeckOverride: flagImportDeck,
 		WithHistory:  flagImportHistory,
 	})
@@ -89,9 +87,6 @@ func runAnkiImport(apkgPath string) error {
 	fmt.Printf("  %s %s\n", labelStyle.Render("Decks created   :"), valStyle.Render(fmt.Sprintf("%d", result.TotalDecks)))
 	fmt.Printf("  %s %s\n", labelStyle.Render("Notes processed :"), valStyle.Render(fmt.Sprintf("%d", result.TotalNotes)))
 	fmt.Printf("  %s %s\n", labelStyle.Render("Cards imported  :"), valStyle.Render(fmt.Sprintf("%d", result.TotalCards)))
-	if result.MediaExtracted > 0 {
-		fmt.Printf("  %s %s\n", labelStyle.Render("Media extracted :"), valStyle.Render(fmt.Sprintf("%d files", result.MediaExtracted)))
-	}
 
 	if len(result.GeneratedFiles) > 0 {
 		fmt.Println("\n" + labelStyle.Render("Generated Markdown Notes:"))
@@ -110,7 +105,6 @@ func runAnkiImport(apkgPath string) error {
 
 func init() {
 	importCmd.Flags().StringVarP(&flagImportOutDir, "out", "o", "./decks", "Directory to write generated Markdown deck notes")
-	importCmd.Flags().StringVar(&flagImportMediaDir, "media-dir", "", "Directory to extract media assets (default: <out>/media)")
 	importCmd.Flags().StringVar(&flagImportDeck, "deck", "", "Override deck name for all imported cards")
 	importCmd.Flags().BoolVar(&flagImportHistory, "with-history", false, "Import card review intervals & history")
 
