@@ -43,18 +43,18 @@ type AnkiNote struct {
 
 // AnkiCard represents a row from the Anki cards table.
 type AnkiCard struct {
-	ID       int64
-	Nid      int64
-	Did      int64
-	Ord      int
-	Type     int
-	Queue    int
-	Due      int64
-	Ivl      int64
-	Factor   int64
-	Reps     int64
-	Lapses   int64
-	ModTime  time.Time
+	ID      int64
+	Nid     int64
+	Did     int64
+	Ord     int
+	Type    int
+	Queue   int
+	Due     int64
+	Ivl     int64
+	Factor  int64
+	Reps    int64
+	Lapses  int64
+	ModTime time.Time
 }
 
 // ConvertedCard is the normalized card ready for Markdown export.

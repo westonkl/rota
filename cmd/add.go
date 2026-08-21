@@ -106,7 +106,7 @@ var addCmd = &cobra.Command{
 		fmt.Printf("\n%s Successfully added card to %s!\n\n", tui.StyleTitle.Render("✓"), targetFile)
 
 		// Sync immediately so the card is ready
-		_, _, _, _, _, _, _ = RunScan([]string{targetFile})
+		_, _, _, _, _, _, _ = RunScan([]string{targetFile}, false)
 
 		return nil
 	},

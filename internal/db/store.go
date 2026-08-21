@@ -49,7 +49,15 @@ type CardFilter struct {
 	Now         time.Time
 }
 
-// SyncResult details the outcome of syncing a set of cards.
+// SyncedFileInfo stores sync metadata for a tracked markdown file.
+type SyncedFileInfo struct {
+	FilePath     string    `json:"file_path"`
+	LastModified time.Time `json:"last_modified"`
+	CardCount    int       `json:"card_count"`
+	ContentHash  string    `json:"content_hash"`
+}
+
+// SyncResult tracks the outcome of syncing cards from a file.
 type SyncResult struct {
 	Added     int
 	Updated   int
@@ -188,6 +196,26 @@ func (s *Store) SyncFileCards(filePath string, parsed []*card.Card) (*SyncResult
 			}
 			result.Deleted++
 		}
+	}
+
+	// Update sync_files tracking table
+	var fileModTime time.Time
+	if fi, err := os.Stat(filePath); err == nil {
+		fileModTime = fi.ModTime().UTC()
+	} else {
+		fileModTime = now
+	}
+	modTimeStr := fileModTime.Format("2006-01-02 15:04:05")
+	_, err = tx.Exec(`
+		INSERT INTO sync_files (file_path, last_modified, card_count, content_hash)
+		VALUES (?, ?, ?, ?)
+		ON CONFLICT(file_path) DO UPDATE SET
+			last_modified = excluded.last_modified,
+			card_count = excluded.card_count,
+			content_hash = excluded.content_hash
+	`, filePath, modTimeStr, len(parsed), "")
+	if err != nil {
+		return nil, fmt.Errorf("failed to update sync_files: %w", err)
 	}
 
 	if err := tx.Commit(); err != nil {
@@ -741,6 +769,36 @@ func (s *Store) CleanOrphanFiles() (int, error) {
 				deleted += int(n)
 			}
 		}
+		_, _ = s.db.Exec("DELETE FROM sync_files WHERE file_path = ? OR LOWER(file_path) = LOWER(?)", fp, fp)
 	}
+
+	_ = deduplicateCards(s.db)
 	return deleted, nil
+}
+
+// GetSyncedFiles retrieves metadata for all previously synced markdown files.
+func (s *Store) GetSyncedFiles() (map[string]*SyncedFileInfo, error) {
+	rows, err := s.db.Query("SELECT file_path, last_modified, card_count, content_hash FROM sync_files")
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	result := make(map[string]*SyncedFileInfo)
+	for rows.Next() {
+		var sf SyncedFileInfo
+		var lastModStr string
+		if err := rows.Scan(&sf.FilePath, &lastModStr, &sf.CardCount, &sf.ContentHash); err != nil {
+			return nil, err
+		}
+		if t, err := parseFlexTime(lastModStr); err == nil {
+			sf.LastModified = t
+		}
+		result[sf.FilePath] = &sf
+		result[strings.ToLower(sf.FilePath)] = &sf
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return result, nil
 }

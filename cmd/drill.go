@@ -37,7 +37,7 @@ var drillCmd = &cobra.Command{
 
 		// 1. Auto-sync if not disabled
 		if !flagNoAutoSync {
-			_, _, _, _, _, _, _ = RunScan(targets)
+			_, _, _, _, _, _, _ = RunScan(targets, false)
 		}
 
 		// 2. Fetch cards
