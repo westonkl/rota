@@ -1,0 +1,9 @@
+*.db
+*.db-shm
+*.db-wal
+rota
+*.apkg
+*.png
+*jpg
+.DS_Store
+decks/*
