@@ -6,3 +6,4 @@ rota
 *.png
 *jpg
 .DS_Store
+decks/*
