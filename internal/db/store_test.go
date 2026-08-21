@@ -112,4 +112,20 @@ func TestStoreSyncAndReview(t *testing.T) {
 	if len(dueAfterUndo) != 2 {
 		t.Errorf("expected 2 due cards after undo, got %d", len(dueAfterUndo))
 	}
+
+	// 7. Verify sync_files tracking
+	synced, err := store.GetSyncedFiles()
+	if err != nil {
+		t.Fatalf("failed to get synced files: %v", err)
+	}
+	if len(synced) == 0 {
+		t.Fatal("expected synced files to be recorded in sync_files table")
+	}
+	info, found := synced["/path/to/notes.md"]
+	if !found {
+		t.Fatal("expected /path/to/notes.md in synced files")
+	}
+	if info.CardCount != 2 {
+		t.Errorf("expected card count 2, got %d", info.CardCount)
+	}
 }

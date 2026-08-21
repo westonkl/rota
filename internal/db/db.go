@@ -26,6 +26,7 @@ CREATE TABLE IF NOT EXISTS cards (
 );
 
 CREATE INDEX IF NOT EXISTS idx_cards_deck ON cards(deck);
+CREATE INDEX IF NOT EXISTS idx_cards_deck_nocase ON cards(deck COLLATE NOCASE);
 CREATE INDEX IF NOT EXISTS idx_cards_file_path ON cards(file_path);
 CREATE INDEX IF NOT EXISTS idx_cards_hash ON cards(hash);
 
@@ -101,9 +102,6 @@ func Open(dbPath string) (*Store, error) {
 		db.Close()
 		return nil, fmt.Errorf("failed to execute database schema: %w", err)
 	}
-
-	// Clean up any duplicate records across case-sensitive paths
-	_ = deduplicateCards(db)
 
 	return &Store{db: db}, nil
 }
