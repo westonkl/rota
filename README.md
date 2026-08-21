@@ -2,8 +2,6 @@
 
 **rota** is a fast, lightweight terminal flashcard and spaced repetition tool written in Go. It turns your plain Markdown notes into interactive flashcards, schedules reviews using the modern **Free Spaced Repetition Scheduler (FSRS)** algorithm, and persists your learning progress in an embedded SQLite database.
 
-Inspired by [shaankhosla/repeater](https://github.com/shaankhosla/repeater), `rota` is built with a **text-first** philosophy: your Markdown notes remain the single source of truth.
-
 ---
 
 ## ✨ Features
@@ -239,14 +237,10 @@ go test -v ./...
 
 ## TO DO
 
-- create heatmap for history?
+- create heatmap for history
 - export to anki format
-- prefer new cards at the beginning of the session
-- add ability to shuffle
 
-----
-#### Go commands
 
-gofmt -w -s
-go mod tidy
-go vet
+## 📄 License
+
+This project is licensed under the [BSD 3-Clause License](LICENSE).
