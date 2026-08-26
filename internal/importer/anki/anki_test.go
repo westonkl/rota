@@ -8,7 +8,7 @@ import (
 	"testing"
 
 	_ "modernc.org/sqlite"
-	"rota/internal/db"
+	"github.com/westonkl/rota/internal/db"
 )
 
 func TestHTMLToMarkdown(t *testing.T) {

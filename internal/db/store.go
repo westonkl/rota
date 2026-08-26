@@ -9,7 +9,7 @@ import (
 	"time"
 
 	gofsrs "github.com/open-spaced-repetition/go-fsrs/v4"
-	"rota/internal/card"
+	"github.com/westonkl/rota/internal/card"
 )
 
 // DeckSummary aggregates stats for a single deck.

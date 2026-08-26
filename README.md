@@ -16,9 +16,18 @@
 
 ---
 
-## 🚀 Quick Start
+## 🚀 Installation & Quick Start
 
-### Build & Install
+### Install via Go (No cloning required)
+
+```bash
+go install github.com/westonkl/rota@latest
+```
+*(Make sure `$GOPATH/bin` or `~/go/bin` is in your `$PATH`)*
+
+---
+
+### Build from Source
 
 ```bash
 # Clone the repository
@@ -27,9 +36,6 @@ cd rota
 
 # Build the binary
 go build -o rota .
-
-# (Optional) Install to your PATH
-go install .
 ```
 
 ---
@@ -239,6 +245,13 @@ go test -v ./...
 
 - create heatmap for history
 - export to anki format
+- Session Ordering & Shuffle (--shuffle, --new-first):
+    - Add flags to control queue order:
+        - --shuffle (-s): Randomizes card order.
+        - --new-first vs --review-first: Lets you decide whether to knock out overdue reviews or learn new material first.
+
+- Interactive Deck Selector (rota drill with no args):
+    - When running rota drill without specifying a deck, show a clean interactive Bubble Tea list of your decks with New / Due / Total counts so you can pick one using the arrow keys.
 
 
 ## 📄 License

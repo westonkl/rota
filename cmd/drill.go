@@ -11,9 +11,9 @@ import (
 	gofsrs "github.com/open-spaced-repetition/go-fsrs/v4"
 	"github.com/spf13/cobra"
 
-	"rota/internal/card"
-	"rota/internal/db"
-	"rota/internal/tui"
+	"github.com/westonkl/rota/internal/card"
+	"github.com/westonkl/rota/internal/db"
+	"github.com/westonkl/rota/internal/tui"
 )
 
 var (

@@ -6,10 +6,10 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"rota/internal/config"
-	"rota/internal/db"
-	"rota/internal/fsrs"
-	"rota/internal/tui"
+	"github.com/westonkl/rota/internal/config"
+	"github.com/westonkl/rota/internal/db"
+	"github.com/westonkl/rota/internal/fsrs"
+	"github.com/westonkl/rota/internal/tui"
 )
 
 var (

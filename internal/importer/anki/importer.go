@@ -7,8 +7,8 @@ import (
 	"regexp"
 	"strings"
 
-	"rota/internal/card"
-	"rota/internal/db"
+	"github.com/westonkl/rota/internal/card"
+	"github.com/westonkl/rota/internal/db"
 )
 
 // ImportOptions defines settings for the Anki importer.
