@@ -1,4 +1,4 @@
-module rota
+module github.com/westonkl/rota
 
 go 1.26.6
 

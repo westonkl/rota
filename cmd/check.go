@@ -11,8 +11,8 @@ import (
 	"github.com/charmbracelet/lipgloss"
 	"github.com/spf13/cobra"
 
-	"rota/internal/card"
-	"rota/internal/tui"
+	"github.com/westonkl/rota/internal/card"
+	"github.com/westonkl/rota/internal/tui"
 )
 
 var checkCmd = &cobra.Command{

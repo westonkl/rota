@@ -6,7 +6,7 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"rota/internal/tui"
+	"github.com/westonkl/rota/internal/tui"
 )
 
 var statsCmd = &cobra.Command{

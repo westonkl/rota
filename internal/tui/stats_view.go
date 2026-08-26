@@ -7,7 +7,7 @@ import (
 
 	"github.com/charmbracelet/lipgloss"
 	gofsrs "github.com/open-spaced-repetition/go-fsrs/v4"
-	"rota/internal/db"
+	"github.com/westonkl/rota/internal/db"
 )
 
 // RenderStatsView formats the stats summary into a clean terminal report.

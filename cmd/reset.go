@@ -9,7 +9,7 @@ import (
 	"github.com/charmbracelet/lipgloss"
 	"github.com/spf13/cobra"
 
-	"rota/internal/tui"
+	"github.com/westonkl/rota/internal/tui"
 )
 
 var flagResetYes bool

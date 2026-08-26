@@ -5,7 +5,7 @@ import (
 	"time"
 
 	gofsrs "github.com/open-spaced-repetition/go-fsrs/v4"
-	"rota/internal/card"
+	"github.com/westonkl/rota/internal/card"
 )
 
 func TestStoreSyncAndReview(t *testing.T) {

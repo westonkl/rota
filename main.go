@@ -1,7 +1,7 @@
 package main
 
 import (
-	"rota/cmd"
+	"github.com/westonkl/rota/cmd"
 )
 
 func main() {

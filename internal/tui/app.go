@@ -11,9 +11,9 @@ import (
 	"github.com/charmbracelet/lipgloss"
 	gofsrs "github.com/open-spaced-repetition/go-fsrs/v4"
 
-	"rota/internal/card"
-	"rota/internal/db"
-	"rota/internal/fsrs"
+	"github.com/westonkl/rota/internal/card"
+	"github.com/westonkl/rota/internal/db"
+	"github.com/westonkl/rota/internal/fsrs"
 )
 
 type SessionState int

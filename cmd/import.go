@@ -9,8 +9,8 @@ import (
 	"github.com/charmbracelet/lipgloss"
 	"github.com/spf13/cobra"
 
-	"rota/internal/importer/anki"
-	"rota/internal/tui"
+	"github.com/westonkl/rota/internal/importer/anki"
+	"github.com/westonkl/rota/internal/tui"
 )
 
 var (
