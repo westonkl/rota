@@ -4,19 +4,18 @@
 
 ---
 
-## ✨ Features
+## Features
 
-- 📝 **Markdown-First Workflow**: Flashcards live directly inside your notes. No proprietary card editors or separate sync databases required.
-- 🧠 **FSRS Algorithm**: Powered by the state-of-the-art Free Spaced Repetition Scheduler (`go-fsrs/v4`) for optimized retention (~90% recall target).
-- 🗄️ **Zero-Configuration SQLite**: Fast, pure-Go SQLite persistence with automatic indexing, transactions, and meaning-only content hashing.
-- 🎨 **Terminal UI**: Interactive, responsive TUI built with [Charm Bubble Tea](https://github.com/charmbracelet/bubbletea), [Lip Gloss](https://github.com/charmbracelet/lipgloss), and syntax-highlighted Markdown rendering via [Glamour](https://github.com/charmbracelet/glamour).
-- 🏷️ **Q/A & Cloze Deletions**: Seamless support for multi-line Question/Answer blocks, bracket clozes `[like this]`, and Anki-style clozes `{{c1::like this}}`.
-- 📊 **Detailed Metrics**: Review streaks, 14-day activity sparklines, recall accuracy rates, and per-deck breakdown statistics.
-- ⚡ **Auto-Sync & Linting**: Automatically detects modified/added cards when reviewing and includes a built-in syntax checker (`rota check`).
+- **Markdown-First Workflow**: Flashcards which live directly inside your notes.
+- **FSRS Algorithm**: Utilizes Free Spaced Repetition Scheduler (`go-fsrs/v4`) for optimized retention (~90% recall target).
+- **Q/A & Cloze Deletions**: Seamless support for multi-line Question/Answer blocks, bracket clozes `[like this]`, and Anki-style clozes `{{c1::like this}}`.
+- **Detailed Metrics**: Review streaks, 14-day activity sparklines, recall accuracy rates, and per-deck breakdown statistics with SQLite persistence.
+- **Auto-Sync & Linting**: Automatically detects modified/added cards when reviewing and includes a built-in syntax checker (`rota check`).
+- **Terminal UI**: Interactive, responsive TUI built with [Charm Bubble Tea](https://github.com/charmbracelet/bubbletea), [Lip Gloss](https://github.com/charmbracelet/lipgloss), and syntax-highlighted Markdown rendering via [Glamour](https://github.com/charmbracelet/glamour).
 
 ---
 
-## 🚀 Installation & Quick Start
+## Installation & Quick Start
 
 ### Install via Go (No cloning required)
 
@@ -40,7 +39,7 @@ go build -o rota .
 
 ---
 
-## 📖 Flashcard Markdown Syntax
+## Flashcard Markdown Syntax
 
 Flashcards can be embedded anywhere within your Markdown notes. Non-card text (headers, regular prose) is preserved and ignored.
 
@@ -86,7 +85,7 @@ C: Speech is [produced] in [Broca's] area. #neuroscience
 
 ---
 
-## 🛠️ CLI Commands
+## CLI Commands
 
 ### 1. Start a Review Session (`rota drill`)
 
@@ -217,7 +216,7 @@ rota reset
 
 ---
 
-## ⚙️ Configuration & Flags
+## Configuration & Flags
 
 - `-d, --db <path>`: Custom SQLite database path (default: `~/.local/share/rota/rota.db` or `.rota/rota.db`).
 - `-p, --path <path>`: Default vault/notes directory (default: `.`).
@@ -231,7 +230,7 @@ export ROTA_DB="$HOME/Dropbox/notes/rota.db"
 
 ---
 
-## 🧪 Testing
+## Testing
 
 Run the test suite:
 
@@ -254,6 +253,6 @@ go test -v ./...
     - When running rota drill without specifying a deck, show a clean interactive Bubble Tea list of your decks with New / Due / Total counts so you can pick one using the arrow keys.
 
 
-## 📄 License
+## License
 
 This project is licensed under the [BSD 3-Clause License](LICENSE).
